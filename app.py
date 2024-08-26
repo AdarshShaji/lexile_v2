@@ -298,10 +298,14 @@ def run_lexile_test():
     topic = st.selectbox("Select a topic", TOPICS)
     difficulty = st.selectbox("Select Difficulty Level", DIFFICULTY_LEVELS)
 
+    if 'test_start_time' not in st.session_state:
+        st.session_state.test_start_time = None 
+
     with st.form(key='test_form'):
         if st.form_submit_button("Start New Test"):
             st.session_state.answers_submitted = False
             st.session_state.xp_claimed = False
+            st.session_state.test_start_time = time.time()
             with st.spinner("Generating test content..."):
                 lexile_range = DIFFICULTY_TO_LEXILE[difficulty]
                 target_lexile = (lexile_range[0] + lexile_range[1]) // 2
@@ -337,7 +341,10 @@ def run_lexile_test():
 
             if st.form_submit_button("Submit Answers"):
                 end_time = time.time()
-                time_taken = end_time - start_time
+                if st.session_state.test_start_time:
+                    time_taken = end_time - st.session_state.test_start_time
+                else:
+                    time_taken = 0
                 
                 scores, percentage_correct = evaluate_answers(st.session_state.questions, user_answers)
                 
